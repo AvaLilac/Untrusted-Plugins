@@ -1,5 +1,4 @@
 (function(){
-
 if(window.__AVIA_INSTANCE_SWITCHER__) return;
 window.__AVIA_INSTANCE_SWITCHER__ = true;
 
@@ -27,9 +26,11 @@ function normalizeURL(url){
 }
 
 function switchInstance(url){
-    const parsed = new URL(url);
-    const target = parsed.origin + "/app/";
-    window.open(target, "_self");
+    if(window.avia && window.avia.loadInstance){
+        window.avia.loadInstance(normalizeURL(url));
+    } else {
+        console.error("Avia API not available, cannot switch instance");
+    }
 }
 
 function makeDraggable(panel, handle){
@@ -40,10 +41,7 @@ function makeDraggable(panel, handle){
         offsetY=e.clientY-panel.offsetTop;
         document.body.style.userSelect="none";
     });
-    document.addEventListener("mouseup", ()=>{
-        dragging=false;
-        document.body.style.userSelect="";
-    });
+    document.addEventListener("mouseup", ()=>{ dragging=false; document.body.style.userSelect=""; });
     document.addEventListener("mousemove", e=>{
         if(!dragging) return;
         panel.style.left=(e.clientX-offsetX)+"px";
@@ -55,14 +53,10 @@ function makeDraggable(panel, handle){
 
 function togglePanel(){
     let panel=document.getElementById("avia-instance-panel");
-    if(panel){
-        panel.style.display = panel.style.display==="none" ? "flex" : "none";
-        return;
-    }
+    if(panel){ panel.style.display = panel.style.display==="none" ? "flex" : "none"; return; }
 
     panel=document.createElement("div");
     panel.id="avia-instance-panel";
-
     Object.assign(panel.style,{
         position:"fixed",
         bottom:"40px",
@@ -94,12 +88,7 @@ function togglePanel(){
 
     const close=document.createElement("div");
     close.textContent="✕";
-    Object.assign(close.style,{
-        position:"absolute",
-        right:"16px",
-        top:"12px",
-        cursor:"pointer"
-    });
+    Object.assign(close.style,{ position:"absolute", right:"16px", top:"12px", cursor:"pointer" });
     close.onclick=()=>panel.style.display="none";
 
     const addButton=document.createElement("button");
@@ -115,68 +104,34 @@ function togglePanel(){
         cursor:"pointer",
         transition:"all .15s ease"
     });
-    addButton.onmouseenter=()=>{ addButton.style.background="rgba(255,255,255,0.12)"; };
-    addButton.onmouseleave=()=>{ addButton.style.background="rgba(255,255,255,0.06)"; };
 
     const addForm=document.createElement("div");
-    Object.assign(addForm.style,{
-        display:"none",
-        flexDirection:"column",
-        gap:"6px",
-        padding:"10px"
-    });
+    Object.assign(addForm.style,{ display:"none", flexDirection:"column", gap:"6px", padding:"10px" });
 
     const nameInput=document.createElement("input");
     nameInput.placeholder="Instance Name";
-    Object.assign(nameInput.style,{
-        padding:"8px",
-        borderRadius:"6px",
-        border:"1px solid rgba(255,255,255,0.1)",
-        background:"rgba(255,255,255,0.05)",
-        color:"#fff"
-    });
+    Object.assign(nameInput.style,{ padding:"8px", borderRadius:"6px", border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"#fff" });
 
     const urlInput=document.createElement("input");
     urlInput.placeholder="https://example.com/";
-    Object.assign(urlInput.style,{
-        padding:"8px",
-        borderRadius:"6px",
-        border:"1px solid rgba(255,255,255,0.1)",
-        background:"rgba(255,255,255,0.05)",
-        color:"#fff"
-    });
+    Object.assign(urlInput.style,{ padding:"8px", borderRadius:"6px", border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"#fff" });
 
     const saveButton=document.createElement("button");
     saveButton.textContent="Save";
-    Object.assign(saveButton.style,{
-        padding:"8px",
-        borderRadius:"6px",
-        border:"none",
-        background:"rgba(255,255,255,0.12)",
-        color:"#fff",
-        cursor:"pointer"
-    });
+    Object.assign(saveButton.style,{ padding:"8px", borderRadius:"6px", border:"none", background:"rgba(255,255,255,0.12)", color:"#fff", cursor:"pointer" });
 
     addForm.appendChild(nameInput);
     addForm.appendChild(urlInput);
     addForm.appendChild(saveButton);
 
     const list=document.createElement("div");
-    Object.assign(list.style,{
-        flex:"1",
-        overflowY:"auto",
-        padding:"12px",
-        display:"flex",
-        flexDirection:"column",
-        gap:"8px"
-    });
+    Object.assign(list.style,{ flex:"1", overflowY:"auto", padding:"12px", display:"flex", flexDirection:"column", gap:"8px" });
 
     panel.appendChild(header);
     panel.appendChild(close);
     panel.appendChild(addButton);
     panel.appendChild(addForm);
     panel.appendChild(list);
-
     document.body.appendChild(panel);
 
     function render(){
@@ -184,44 +139,23 @@ function togglePanel(){
         const instances=[OFFICIAL_INSTANCE,...getInstances()];
         instances.forEach((inst,index)=>{
             const card=document.createElement("div");
-            Object.assign(card.style,{
-                padding:"10px",
-                borderRadius:"10px",
-                background:"rgba(255,255,255,0.05)",
-                display:"flex",
-                justifyContent:"space-between",
-                alignItems:"center"
-            });
+            Object.assign(card.style,{ padding:"10px", borderRadius:"10px", background:"rgba(255,255,255,0.05)", display:"flex", justifyContent:"space-between", alignItems:"center" });
 
             const info=document.createElement("div");
-            info.innerHTML=
-            `<div style="font-weight:600">${inst.name}</div>
-            <div style="font-size:11px;opacity:.6">${inst.url}</div>`;
+            info.innerHTML=`<div style="font-weight:600">${inst.name}</div><div style="font-size:11px;opacity:.6">${inst.url}</div>`;
 
             const controls=document.createElement("div");
 
             const openButton=document.createElement("button");
             openButton.textContent="Open";
-            Object.assign(openButton.style,{
-                marginLeft:"6px",
-                padding:"4px 8px",
-                borderRadius:"6px",
-                border:"none",
-                cursor:"pointer"
-            });
+            Object.assign(openButton.style,{ marginLeft:"6px", padding:"4px 8px", borderRadius:"6px", border:"none", cursor:"pointer" });
             openButton.onclick=()=>switchInstance(inst.url);
             controls.appendChild(openButton);
 
             if(index!==0){
                 const deleteButton=document.createElement("button");
                 deleteButton.textContent="Delete";
-                Object.assign(deleteButton.style,{
-                    marginLeft:"6px",
-                    padding:"4px 8px",
-                    borderRadius:"6px",
-                    border:"none",
-                    cursor:"pointer"
-                });
+                Object.assign(deleteButton.style,{ marginLeft:"6px", padding:"4px 8px", borderRadius:"6px", border:"none", cursor:"pointer" });
                 deleteButton.onclick=()=>{
                     const data=getInstances();
                     data.splice(index-1,1);
@@ -237,10 +171,7 @@ function togglePanel(){
         });
     }
 
-    addButton.onclick=()=>{
-        addForm.style.display = addForm.style.display==="none" ? "flex" : "none";
-    };
-
+    addButton.onclick=()=>{ addForm.style.display = addForm.style.display==="none" ? "flex" : "none"; };
     saveButton.onclick=()=>{
         const name=nameInput.value.trim();
         const url=urlInput.value.trim();
@@ -260,16 +191,14 @@ function togglePanel(){
 function injectButton(){
     if(document.getElementById("avia-instance-btn")) return;
 
-    const appearanceBtn=[...document.querySelectorAll("a")]
-        .find(a=>a.textContent.trim()==="Appearance");
+    const appearanceBtn=[...document.querySelectorAll("a")].find(a=>a.textContent.trim()==="Appearance");
     const themesBtn=document.getElementById("avia-themes-btn");
     if(!appearanceBtn || !themesBtn) return;
 
     const clone=appearanceBtn.cloneNode(true);
     clone.id="avia-instance-btn";
 
-    const text=[...clone.querySelectorAll("div")]
-        .find(d=>d.children.length===0);
+    const text=[...clone.querySelectorAll("div")].find(d=>d.children.length===0);
     if(text) text.textContent="(Avia) Instances";
 
     const oldSvg = clone.querySelector("svg");
@@ -288,13 +217,10 @@ function injectButton(){
     clone.insertBefore(svg, clone.firstChild);
 
     clone.onclick=togglePanel;
-
     themesBtn.parentElement.insertBefore(clone,themesBtn.nextSibling);
 }
 
-new MutationObserver(injectButton)
-.observe(document.body,{childList:true,subtree:true});
-
+new MutationObserver(injectButton).observe(document.body,{childList:true,subtree:true});
 injectButton();
 
 })();

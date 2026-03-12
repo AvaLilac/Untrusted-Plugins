@@ -27,8 +27,9 @@ function normalizeURL(url){
 }
 
 function switchInstance(url){
-
-    window.location.replace(normalizeURL(url));
+    const parsed = new URL(url);
+    const target = parsed.origin + "/app/";
+    window.open(target, "_self");
 }
 
 function makeDraggable(panel, handle){
@@ -114,6 +115,8 @@ function togglePanel(){
         cursor:"pointer",
         transition:"all .15s ease"
     });
+    addButton.onmouseenter=()=>{ addButton.style.background="rgba(255,255,255,0.12)"; };
+    addButton.onmouseleave=()=>{ addButton.style.background="rgba(255,255,255,0.06)"; };
 
     const addForm=document.createElement("div");
     Object.assign(addForm.style,{

@@ -27,9 +27,8 @@ function normalizeURL(url){
 }
 
 function switchInstance(url){
-    const parsed = new URL(url);
-    const target = parsed.origin + "/app/";
-    window.location.href = target;
+
+    window.location.replace(normalizeURL(url));
 }
 
 function makeDraggable(panel, handle){
@@ -115,8 +114,6 @@ function togglePanel(){
         cursor:"pointer",
         transition:"all .15s ease"
     });
-    addButton.onmouseenter=()=>{ addButton.style.background="rgba(255,255,255,0.12)"; };
-    addButton.onmouseleave=()=>{ addButton.style.background="rgba(255,255,255,0.06)"; };
 
     const addForm=document.createElement("div");
     Object.assign(addForm.style,{
@@ -272,11 +269,9 @@ function injectButton(){
         .find(d=>d.children.length===0);
     if(text) text.textContent="(Avia) Instances";
 
-    // remove old SVG icon
     const oldSvg = clone.querySelector("svg");
     if(oldSvg) oldSvg.remove();
 
-    // add switch icon
     const svgNS="http://www.w3.org/2000/svg";
     const svg=document.createElementNS(svgNS,"svg");
     svg.setAttribute("viewBox","0 0 24 24");
